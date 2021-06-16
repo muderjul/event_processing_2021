@@ -1,5 +1,8 @@
-def lift(v):
-    return {"max": v["m"], "arg": v["a"]}
+from event import Event
+
+
+def lift(v: Event):
+    return {"max": v.value, "arg": v.key}
 
 
 def combine(a, b):
