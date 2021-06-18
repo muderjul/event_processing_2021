@@ -2,6 +2,8 @@ from helper_functions import lift, combine, lower
 from FlatFAT import FlatFAT
 
 
+# FlatFAT.update(list(dict("type", "arg", "max"))) where type is one of "trigger", "insert", "evict"
+
 class ReactiveAggregator:
     """Reactive Aggregator for IStream and ArgMax"""
 
@@ -16,4 +18,3 @@ class ReactiveAggregator:
 
     def trigger(self, events):
         self.flatFAT.evaluate(events)
-
