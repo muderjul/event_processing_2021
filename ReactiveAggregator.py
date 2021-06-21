@@ -17,4 +17,4 @@ class ReactiveAggregator:
         self.flatFAT.update(events, "evict")
 
     def trigger(self, events):
-        self.flatFAT.update(events, "trigger")  # not called yet
+        self.flatFAT.update(events, "trigger")

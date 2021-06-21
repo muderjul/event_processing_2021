@@ -30,17 +30,15 @@ def simulate_window(dataset_name: str, reactive_aggregator: ReactiveAggregator, 
 
         for i, line in enumerate(csv_reader):
 
-            # insert the new event
+            # create new event
             event = Event(
                 timestamp=int(line["timestamp"]),
                 key=line["name"],
                 value=int(line["account_balance"])
             )
             window_begin = event.timestamp - window_size
-            reactive_aggregator.insert([event])
-            window.append(event)
 
-            # check for possible evictions in the window
+            # A. check for possible EVICTions in the window
             evict_ids = []
             for event_id, event_in_window in enumerate(window):
                 if event_in_window.timestamp < window_begin:
@@ -50,7 +48,20 @@ def simulate_window(dataset_name: str, reactive_aggregator: ReactiveAggregator, 
                 reactive_aggregator.evict([window[evict_id]])
             window = [event_in_window for event_idx, event_in_window in enumerate(window) if event_idx not in evict_ids]
 
-            # TODO: discuss if we should implement trigger, so do we want that events replace each other implicitly?
+            replaced = False
+            # B. check for replacements (TRIGGER) before
+            for event_id, event_in_window in enumerate(window):
+                if event_in_window.key == event.key:
+                    reactive_aggregator.trigger([event])
+                    window = [event_in_window for event_idx, event_in_window in enumerate(window) if event_idx != event_id]
+                    window.append(event)
+                    replaced = True
+                    break;
+
+            # C. else: INSERT the new event
+            if not replaced:
+                reactive_aggregator.insert([event])
+                window.append(event)
 
             if max_events is not None and i + 1 >= max_events:
                 break
