@@ -40,13 +40,11 @@ class FlatFAT(object):
                         self.tuple = combine(self.leftChild.getTuple(), self.rightChild.getTuple())
                     else: # left set only
                         self.rightChild = FlatFAT()
-                        location.pop("type")
                         self.rightChild.new([location])
                         self.tuple = combine(self.tuple, location)
                 else: # left not set
                     if self.rightChild != None: # right set only
                         self.leftChild = FlatFAT()
-                        location.pop("type")
                         self.leftChild.new([location])
                         self.tuple = combine(self.tuple, location)
                     else: # both not set
@@ -56,7 +54,6 @@ class FlatFAT(object):
                             self.leftChild = FlatFAT()
                             self.leftChild.new([self.tuple])
                             self.rightChild = FlatFAT
-                            location.pop("type")
                             self.rightChild.new([location])
                             self.tuple = combine(self.tuple, location)
 
