@@ -17,7 +17,7 @@ class FlatFAT(object):
             self.leftChild.new(locations[:2**(depth-1)])
             self.rightChild = FlatFAT()
             self.rightChild.new(locations[2**(depth-1):])
-            self.tuple = combine(leftChild.getTuple(), rightChild.getTuple())
+            self.tuple = combine(self.leftChild.getTuple(), self.rightChild.getTuple())
         else:
             return
 
@@ -30,13 +30,13 @@ class FlatFAT(object):
                         lcSize = self.leftChild.getSize()
                         rcSize = self.rightChild.getSize()
                         if log(lcSize, 2) != ceil(log(lcSize, 2)): # left space
-                            self.leftChild.update([location])
+                            self.leftChild.update([location], type)
                         elif log(rcSize, 2) != ceil(log(rcSize, 2)): # right space
-                            self.rightChild.update([location])
+                            self.rightChild.update([location], type)
                         elif rcSize < lcSize: # both need a new depth layer, but right is smaller than left
-                            self.rightChild.update([location])
+                            self.rightChild.update([location], type)
                         else: # both need a new depth layer but left is LEQ than right
-                            self.leftChild.update([location])
+                            self.leftChild.update([location], type)
                         self.tuple = combine(self.leftChild.getTuple(), self.rightChild.getTuple())
                     else: # left set only
                         self.rightChild = FlatFAT()
@@ -61,8 +61,8 @@ class FlatFAT(object):
             for location in locations:
                 if self.leftChild != None:
                     if self.rightChild != None: # both childs not empty
-                        if self.leftChild.update([location]) == 0: # left child update returns non-empty tree
-                            if self.rightChild.update([location]) == 0: # right child update returns non-empty tree
+                        if self.leftChild.update([location], type) == 0: # left child update returns non-empty tree
+                            if self.rightChild.update([location], type) == 0: # right child update returns non-empty tree
                                 self.tuple = combine(self.leftChild.getTuple(), self.rightChild.getTuple())
                                 return 0
                             else: # right child update returned empty tree
@@ -72,21 +72,21 @@ class FlatFAT(object):
                                 return 0
                         else: # left side update returned empty tree
                             self.leftChild = None
-                            if self.rightChild.update([location]) == 0: # right child update returns non-empty tree
+                            if self.rightChild.update([location], type) == 0: # right child update returns non-empty tree
                                 # todo compact right tree?
                                 self.tuple = self.rightChild.getTuple()
                                 return 0
                             else: # both tree sides empty, return compacting upwards
                                 return -1
                     else: # right child empty, left child not empty
-                        if self.leftChild.update([location]) == 0: # left child not empty after update
+                        if self.leftChild.update([location], type) == 0: # left child not empty after update
                             self.tuple = self.leftChild.getTuple()
                             return 0
                         else: # both children empty after update
                             return -1
                 else:
                     if self.rightChild != None: # left child empty, right child not empty
-                        if self.rightChild.update([location]) == 0: # right child not empty after update
+                        if self.rightChild.update([location], type) == 0: # right child not empty after update
                             self.tuple = self.rightChild.getTuple()
                             return 0
                         else: # both children empty after update
@@ -101,15 +101,15 @@ class FlatFAT(object):
         elif type == "trigger":
             for location in locations:
                 if self.leftChild != None:
-                    self.leftChild.update([location])
+                    self.leftChild.update([location], type)
                     if self.rightChild != None: # left and right not empty
-                        self.rightChild.update([location])
+                        self.rightChild.update([location], type)
                         self.tuple = combine(self.leftChild.getTuple(), self.rightChild.getTuple())
                     else: # right side empty, one sided update
                         self.tuple = self.leftChild.getTuple()
                 else:
                     if self.rightChild != None: # left empty and right not empty
-                        self.rightChild.update([location])
+                        self.rightChild.update([location], type)
                         self.tuple = self.rightChild.getTuple()
                     else: # we are leaf
                         if self.tuple["arg"] == location["arg"]: # check if we should update
@@ -119,14 +119,14 @@ class FlatFAT(object):
             else:
                 pass # cannot happen
 
-    def aggregate(self):
+    def getTuple(self):
         return self.tuple
 
-    def prefix(i):
+    def prefix(self, i):
         if self.leftChild != None:
             lcSize = self.leftChild.size()
             if lcSize == i:
-                return self.leftChild.aggregate()
+                return self.leftChild.getTuple()
             elif lcSize < i:
                 return self.leftChild.prefix(i)
             else:
@@ -134,15 +134,23 @@ class FlatFAT(object):
                 if self.rightChild != None:
                     rcSize = self.rightChild.size()
                     if rcSize >= i:
-                        return combine(self.leftChild.aggregate(), self.rightChild.aggregate())
+                        return combine(self.leftChild.getTuple(), self.rightChild.getTuple())
                     else:
-                        return combine(self.leftChild.aggregate(), self.rightChild.prefix(i))
+                        return combine(self.leftChild.getTuple(), self.rightChild.prefix(i))
+        else:
+            if self.rightChild != None:
+                if self.rightChild.getSize() > i:
+                    return self.rightChild.prefix(i)
+                else:
+                    return self.rightChild.getTuple()
+            else:
+                return self.tuple
 
-    def suffix(i):
+    def suffix(self, i):
         if self.rightChild != None:
             rcSize = self.rightChild.size()
             if rcSize == i:
-                return self.rightChild.aggregate()
+                return self.rightChild.getTuple()
             elif rcSize < i:
                 return self.rightChild.suffix(i)
             else:
@@ -150,9 +158,17 @@ class FlatFAT(object):
                 if self.leftChild != None:
                     lcSize = self.leftChild.size()
                     if lcSize >= i:
-                        return combine(self.rightChild.aggregate(), self.leftChild.aggregate())
+                        return combine(self.rightChild.getTuple(), self.leftChild.getTuple())
                     else:
-                        return combine(self.rightChild.aggregate(), self.leftChild.suffix(i))
+                        return combine(self.rightChild.getTuple(), self.leftChild.suffix(i))
+        else:
+            if self.leftChild != None:
+                if self.leftChild.getSize() > i:
+                    return self.leftChild.suffix(i)
+                else:
+                    return self.leftChild.getTuple()
+            else:
+                return self.tuple
 
     def getSize(self):
         size = 0
