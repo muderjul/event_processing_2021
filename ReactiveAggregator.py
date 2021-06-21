@@ -7,14 +7,14 @@ from FlatFAT import FlatFAT
 class ReactiveAggregator:
     """Reactive Aggregator for IStream and ArgMax"""
 
-    def __construct__(self):
+    def __init__(self):
         self.flatFAT = FlatFAT()
 
     def insert(self, events):
-        self.flatFAT.evaluate(events)
+        self.flatFAT.update(events, "insert")
 
     def evict(self, events):
-        self.flatFAT.evaluate(events)
+        self.flatFAT.update(events, "evict")
 
     def trigger(self, events):
-        self.flatFAT.evaluate(events)
+        self.flatFAT.update(events, "trigger")  # not called yet

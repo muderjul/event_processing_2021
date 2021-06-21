@@ -21,9 +21,10 @@ class FlatFAT(object):
         else:
             return
 
-    def update(self, locations):
-        for location in locations:
-            if location["type"] == "insert":
+    def update(self, locations, type):
+        print(locations)
+        if type == "insert":
+            for location in locations:
                 if self.leftChild != None:
                     if self.rightChild != None: # both set
                         lcSize = self.leftChild.getSize()
@@ -56,7 +57,8 @@ class FlatFAT(object):
                         self.rightChild.new([location])
                         self.tuple = combine(self.tuple, location)
 
-            elif location["type"] == "evict":
+        elif type == "evict":
+            for location in locations:
                 if self.leftChild != None:
                     if self.rightChild != None: # both childs not empty
                         if self.leftChild.update([location]) == 0: # left child update returns non-empty tree
@@ -96,7 +98,8 @@ class FlatFAT(object):
                         else:
                             return 0
 
-            elif location["type"] == "trigger":
+        elif type == "trigger":
+            for location in locations:
                 if self.leftChild != None:
                     self.leftChild.update([location])
                     if self.rightChild != None: # left and right not empty
