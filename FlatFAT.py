@@ -50,15 +50,15 @@ class FlatFAT(object):
                         self.leftChild.new([location])
                         self.tuple = combine(self.tuple, location)
                     else: # both not set
-			if self.tuple == None:
-				self.tuple = location
-			else:
-	                        self.leftChild = FlatFAT()
-        	                self.leftChild.new([self.tuple])
-                	        self.rightChild = FlatFAT
-                        	location.pop("type")
-                        	self.rightChild.new([location])
-                        	self.tuple = combine(self.tuple, location)
+                        if self.tuple == None:
+                            self.tuple = location
+                        else:
+                            self.leftChild = FlatFAT()
+                            self.leftChild.new([self.tuple])
+                            self.rightChild = FlatFAT
+                            location.pop("type")
+                            self.rightChild.new([location])
+                            self.tuple = combine(self.tuple, location)
 
         elif type == "evict":
             for location in locations:

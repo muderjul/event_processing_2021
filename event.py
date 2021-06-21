@@ -6,3 +6,6 @@ class Event:
 
     def __repr__(self):
         return f"Event(timestamp={self.timestamp}, key={self.key}, value={self.value})"
+
+    def to_dict(self):
+        pass
