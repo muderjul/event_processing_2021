@@ -65,3 +65,5 @@ def simulate_window(dataset_name: str, reactive_aggregator: ReactiveAggregator, 
 
             if max_events is not None and i + 1 >= max_events:
                 break
+
+            print(reactive_aggregator.submit())

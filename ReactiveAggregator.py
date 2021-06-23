@@ -18,3 +18,6 @@ class ReactiveAggregator:
 
     def trigger(self, events):
         self.flatFAT.update(events, "trigger")
+
+    def submit(self):
+        return self.flatFAT.aggregate()

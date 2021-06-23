@@ -10,7 +10,10 @@ class FlatFAT(object):
 
     def new(self, locations):
         if len(locations) == 1:
-            self.tuple = lift(locations[0])
+            try:
+                self.tuple = lift(locations[0])
+            except AttributeError as E:
+                self.tuple = locations[0]
         elif len(locations) > 1:
             depth = ceil(log(len(locations), 2))
             self.leftChild = FlatFAT()
@@ -22,7 +25,6 @@ class FlatFAT(object):
             return
 
     def update(self, locations, type):
-        print(locations)
         if type == "insert":
             for location in locations:
                 if self.leftChild is not None:
@@ -40,22 +42,22 @@ class FlatFAT(object):
                         self.tuple = combine(self.leftChild.getTuple(), self.rightChild.getTuple())
                     else: # left set only
                         self.rightChild = FlatFAT()
-                        self.rightChild.new([location], type)
-                        self.tuple = combine(self.tuple, location)
+                        self.rightChild.new([location])
+                        self.tuple = combine(self.leftChild.getTuple(), self.rightChild.getTuple())
                 else: # left not set
                     if self.rightChild is not None: # right set only
                         self.leftChild = FlatFAT()
-                        self.leftChild.new([location], type)
-                        self.tuple = combine(self.tuple, location)
+                        self.leftChild.new([location])
+                        self.tuple = combine(self.rightChild.getTuple(), self.leftChild.getTuple())
                     else: # both not set
                         if self.tuple is None:
-                            self.tuple = location
+                            self.tuple = lift(location)
                         else:
                             self.leftChild = FlatFAT()
                             self.leftChild.new([self.tuple])
                             self.rightChild = FlatFAT()
                             self.rightChild.new([location])
-                            self.tuple = combine(self.tuple, location)
+                            self.tuple = combine(self.leftChild.getTuple(), self.rightChild.getTuple())
 
         elif type == "evict":
             for location in locations:
@@ -92,7 +94,7 @@ class FlatFAT(object):
                         else: # both children empty after update
                             return -1
                     else: # we are root and only node
-                        if self.tuple["arg"] == location["arg"]:
+                        if self.tuple["arg"] == location.getKey():
                             self.tuple = None
                             return -1
                         else:
@@ -112,14 +114,17 @@ class FlatFAT(object):
                         self.rightChild.update([location], type)
                         self.tuple = self.rightChild.getTuple()
                     else: # we are leaf
-                        if self.tuple["arg"] == location["arg"]: # check if we should update
-                            self.tuple["max"] = location["max"]
+                        if self.tuple["arg"] == location.getKey(): # check if we should update
+                            self.tuple = lift(location)
                         else: # arg does not match, noop
                             continue
             else:
                 pass # cannot happen
 
     def getTuple(self):
+        return self.tuple
+
+    def aggregate(self):
         return self.tuple
 
     def prefix(self, i):

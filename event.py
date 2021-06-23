@@ -4,6 +4,9 @@ class Event:
         self.key = key
         self.value = value
 
+    def getKey(self):
+        return self.key
+
     def __repr__(self):
         return f"Event(timestamp={self.timestamp}, key={self.key}, value={self.value})"
 
