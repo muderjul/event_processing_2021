@@ -30,7 +30,7 @@ class DatasetGenerator:
             filename: str,
             number_events: int,
             max_int: int,
-            avg_events_per_name: int = 10,
+            number_of_names: int = 1000,
             timestamp_max_diff: int = 200,
             unique_names_only: bool = False,
             fifo: bool = True,
@@ -38,7 +38,7 @@ class DatasetGenerator:
     ):
         print(f"Generating data for {number_events} events..."
               f"\nmax_int={max_int}"
-              f"\navg_events_per_name={avg_events_per_name}"
+              f"\nnumber_of_names={number_of_names}"
               f"\ntimestamp_max_diff={timestamp_max_diff}"
               f"\nunique_names_only={unique_names_only}"
               f"\nfifo={fifo}"
@@ -47,7 +47,7 @@ class DatasetGenerator:
         data = self._generate_data(
             number_events=number_events,
             max_int=max_int,
-            avg_events_per_name=avg_events_per_name,
+            number_of_names=number_of_names,
             timestamp_max_diff=timestamp_max_diff,
             unique_names_only=unique_names_only,
             fifo=fifo,
@@ -63,16 +63,15 @@ class DatasetGenerator:
             self,
             number_events: int,
             max_int: int,
-            avg_events_per_name: int,
+            number_of_names: int,
             timestamp_max_diff: int,
             unique_names_only: bool,
             fifo: bool,
             realistic_names: bool,
     ):
         print("Generating names...")
-        number_names = int(number_events / avg_events_per_name) \
-            if not unique_names_only else number_events
-        name_list = self._generate_names(number_names=number_names, realistic_names=realistic_names)
+        number_of_names = number_of_names if not unique_names_only else number_events
+        name_list = self._generate_names(number_names=number_of_names, realistic_names=realistic_names)
 
         print("Generating events...")
         result = []
@@ -91,7 +90,7 @@ class DatasetGenerator:
             if fifo:
                 timestamp += random.randint(1, timestamp_max_diff)
             else:
-                timestamp += random.randint(-timestamp_max_diff, timestamp_max_diff)
+                timestamp = 1000 + random.randint(-timestamp_max_diff, timestamp_max_diff)
         return result
 
     @staticmethod
@@ -110,7 +109,7 @@ if __name__ == '__main__':
         filename="dataset2_unique_names_only",
         number_events=5000000,
         max_int=1000000,
-        avg_events_per_name=500,
+        number_of_names=10000,
         timestamp_max_diff=200,
         unique_names_only=True,
         fifo=True,
