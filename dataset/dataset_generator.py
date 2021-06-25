@@ -7,23 +7,11 @@ import names
 
 
 def _generate_name(
-        realistic_names: bool,
-        letters: str,
         names_so_far: List[str]
 ):
-    i = 0
-    while True:
-        if realistic_names:
-            candidate_name = names.get_full_name()
-        else:
-            candidate_name = ''.join(random.choice(letters) for _ in range(16))
-
-        if candidate_name not in names_so_far:
-            if i > 2:
-                print(i)
-            return candidate_name
-
-        i += 1
+    candidate_name = names.get_full_name()
+    if candidate_name not in names_so_far:
+        return candidate_name
 
 
 class DatasetGenerator:
@@ -101,11 +89,13 @@ class DatasetGenerator:
     @staticmethod
     def _generate_names(number_names: int, realistic_names: bool = False):
         result = []
-        letters = string.ascii_lowercase
         for event_no in range(number_names):
             if event_no % 10000 == 0:
-                print(event_no)
-            name = _generate_name(realistic_names, letters, result)
+                print(event_no, 'names generated')
+            if realistic_names:
+                name = _generate_name(result)
+            else:
+                name = f'user{event_no}'
             result.append(name)
         return result
 
