@@ -98,6 +98,8 @@ class DatasetGenerator:
         result = []
         letters = string.ascii_lowercase
         for event_no in range(number_names):
+            if event_no % 10000 == 0:
+                print(event_no)
             name = _generate_name(realistic_names, letters, result)
             result.append(name)
         return result
