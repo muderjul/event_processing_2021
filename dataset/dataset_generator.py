@@ -11,6 +11,7 @@ def _generate_name(
         letters: str,
         names_so_far: List[str]
 ):
+    i = 0
     while True:
         if realistic_names:
             candidate_name = names.get_full_name()
@@ -18,7 +19,11 @@ def _generate_name(
             candidate_name = ''.join(random.choice(letters) for _ in range(16))
 
         if candidate_name not in names_so_far:
+            if i > 2:
+                print(i)
             return candidate_name
+
+        i += 1
 
 
 class DatasetGenerator:
