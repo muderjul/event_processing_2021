@@ -90,8 +90,6 @@ class DatasetGenerator:
     def _generate_names(number_names: int, realistic_names: bool = False):
         result = []
         for event_no in range(number_names):
-            if event_no % 10000 == 0:
-                print(event_no, 'names generated')
             if realistic_names:
                 name = _generate_name(result)
             else:
