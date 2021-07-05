@@ -1,0 +1,14 @@
+As no data stream was supplied by the researchers, artificial data needed to be generated
+for the sake of testing and using our recreation of the examined Event Processing approach.
+To make runs reproducible and to make the computational cost of the generation negligible
+for the algorithm's runtime, this data is generated independently and stored in csv files
+as opposed to generating the events in the live system.
+Each data point consists of an integer value timestamp, a key string called 'user' and
+an integer value called 'account\_balance', all of which are randomized according to certain rules.
+Several parameters can be adjusted to generate datasets with different properties.
+Our used datasets have 5 million data points and a maximum 'account\_balance' value of 1,000,000 each,
+mostly we used a dataset with unique usernames
+(for which the FlatFAT does not need to update) and a dataset with 20 usernames only
+(which forces a high rate of updates).
+Both datasets have their timestamps strictly monotonously increasing (FIFO)
+but non-FIFO data can also be generated with a parameter.
