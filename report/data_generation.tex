@@ -7,8 +7,8 @@ Each data point consists of an integer value timestamp, a key string called 'use
 an integer value called 'account\_balance', all of which are randomized according to certain rules.
 Several parameters can be adjusted to generate datasets with different properties.
 Our used datasets have 5 million data points and a maximum 'account\_balance' value of 1,000,000 each,
-mostly we used a dataset with unique usernames
-(for which the FlatFAT does not need to update) and a dataset with 20 usernames only
-(which forces a high rate of updates).
-Both datasets have their timestamps strictly monotonously increasing (FIFO)
+mostly we used a dataset with unique usernames to ensure that the FlatFAT is full at all times.
+Additionally we used two datasets with 20 and 500 unique usernames only
+which forces a high rate of updates as opposed to evicting and inserting those tuples.
+All datasets have their timestamps strictly monotonously increasing (FIFO)
 but non-FIFO data can also be generated with a parameter.

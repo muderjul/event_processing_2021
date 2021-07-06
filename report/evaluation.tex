@@ -1,0 +1,24 @@
+For our evaluation we decided to mirror the papers evaluation as closely as possible
+to see if we were able to replicate the results obtained there.
+Therefore our baseline is the given implementation of RA in the paper.
+Although we compare ourselves to the other implementation we decided to focus on
+replicating the asymptotic results rather than beating the raw performance of their implementation.
+
+\subsection{Experimental Setup}
+As already mentioned we want to evaluate similarly to the paper, which means we also mostly varied
+window sizes and used sliding granularity of 1 where not specified.
+Further information on our data streams can be taken from our Data Generation section. % TODO LINK SECTION
+To limit the tests and to gain the possibility of rerunning the tests with different configurations
+and iterations of our implementation we limited ourselves to 5 million tuples and
+a cap of 180 seconds spend only inside our reactive aggregator per run
+which sums up to a maximum just short of 6 hours per run of the full evaluation suite.
+We ran all tests on a 4-core 2.3 Ghz Intel Core i7 with 32 GB of RAM, using
+Python 3.7.3 and MacOS 10.15.7
+
+\subsection{Results and Analysis}
+Since we were interested in replicating the papers results, we decided to
+recreate figures (in the paper) 6, 8 and 10. Tables 3 and 4 as well as figure 11 were not suited
+for such a comparison while our data sets were not able to guarantee the necessary
+(1, 1)-changes for figure 7. Due to the previously mentioned possible bugs in our
+implementation we decided to not replicate figure 9. We omitted comparing to figure 12
+to keep our focus on the speed of the implementation instead of a memory footprint.
