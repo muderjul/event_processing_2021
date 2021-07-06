@@ -6,6 +6,7 @@
 \documentclass[sigconf, nonacm]{acmart}
 
 \usepackage{float}
+\usepackage{pgfplots}
 
 %% The following content must be adapted for the final version
 % paper-specific
@@ -17,11 +18,16 @@
 \newcommand\vldbyear{2020}
 % should be fine as it is
 \newcommand\vldbauthors{\authors}
-\newcommand\vldbtitle{\shorttitle} 
+\newcommand\vldbtitle{\shorttitle}
 % leave empty if no availability url should be set
 \newcommand\vldbavailabilityurl{URL_TO_YOUR_ARTIFACTS}
 % whether page numbers should be shown or not, use 'plain' for review versions, 'empty' for camera ready
-\newcommand\vldbpagestyle{plain} 
+\newcommand\vldbpagestyle{plain}
+
+\pgfplotstableread[col sep=comma]{figures/fig10.dat}{\figTen}
+\pgfplotstableread[col sep=comma]{figures/fig8.dat}{\figEight}
+\pgfplotstableread[col sep=comma]{figures/fig6.dat}{\figSix}
+\pgfplotstableread[col sep=comma]{figures/ds2-4_comp.dat}{\dsComp}
 
 \begin{document}
 \title{ArgMax in Sliding-Window Aggregation}
@@ -106,6 +112,132 @@ Thus, our implementation is oriented after the original implementation architect
 	\includegraphics[width=\linewidth]{figures/original_architecture}
 	\caption{Overview of the approach published in~\cite{GeneralIncremental15}}
 	\label{fig:original_architecture}
+\end{figure}\begin{figure}
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            xmode=log,
+            xmin = 1, xmax = 1024,
+            ymin = 0, ymax = 300,
+            grid = both,
+            minor tick num = 1,
+            major grid style = {lightgray},
+            minor grid style = {lightgray!25},
+            width = 0.5\textwidth,
+            height = 0.5\textwidth,
+            legend cell align = {left},
+            legend pos = north west,
+            log basis x={2}
+        ]
+
+            \addplot[blue, mark = diamond*] table [x = {x}, y = {1}] {\figTen};
+            \addplot[cyan, mark = *] table [x = {x}, y = {4}] {\figTen};
+            \addplot[teal, mark = triangle*] table [x = {x}, y = {64}] {\figTen};
+            \addplot[olive, mark = pentagon*] table [x = {x}, y = {n16}] {\figTen};
+            \addplot[purple, mark = +] table [x = {x}, y = {n4}] {\figTen};
+            \addplot[violet, mark = square*] table [x = {x}, y = {n}] {\figTen};
+
+            \legend{
+                m = 1,
+                m = 4,
+                m = 64,
+                m = n/16,
+                m = n/4,
+                m = n
+            }
+
+        \end{axis}
+
+    \end{tikzpicture}
+    \caption{The average per-tuple cost (in \textbf{microseconds}) to update a batch of $m$ changes using the reactive aggregator (RA) with ArgMax, where the window size is $n$.}
+    \label{fig:fig10Comp}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            xmode=log,
+            xmin = 1, xmax = 8192,
+            ymin = 0, ymax = 500000,
+            grid = both,
+            minor tick num = 1,
+            major grid style = {lightgray},
+            minor grid style = {lightgray!25},
+            width = 0.5\textwidth,
+            height = 0.5\textwidth,
+            legend cell align = {left},
+            legend pos = north west,
+            log basis x={2}
+        ]
+
+            \addplot[blue, mark = diamond*] table [x = {x}, y = {y}] {\figEight};
+
+        \end{axis}
+
+    \end{tikzpicture}
+    \caption{The time (in \textbf{microseconds}) to aggregate the whole window from scratch using the reactive aggregator (RA) with ArgMax.}
+    \label{fig:fig8Comp}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            xmode=log,
+            xmin = 1, xmax = 1024,
+            ymin = 0, ymax = 0.25,
+            grid = both,
+            minor tick num = 1,
+            major grid style = {lightgray},
+            minor grid style = {lightgray!25},
+            width = 0.5\textwidth,
+            height = 0.5\textwidth,
+            legend cell align = {left},
+            legend pos = north west,
+            log basis x={2}
+        ]
+
+            \addplot[blue, mark = diamond*] table [x = {x}, y = {y}] {\figSix};
+
+        \end{axis}
+
+    \end{tikzpicture}
+    \caption{The sustained throughput (in \textbf{million tuples per second}) for different window sizes using the reactive aggregator (RA) with ArgMax.}
+    \label{fig:fig6Comp}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            xmode=log,
+            xmin = 1, xmax = 1024,
+            ymin = 0, ymax = 4000,
+            grid = both,
+            minor tick num = 1,
+            major grid style = {lightgray},
+            minor grid style = {lightgray!25},
+            width = 0.5\textwidth,
+            height = 0.5\textwidth,
+            legend cell align = {left},
+            legend pos = north west,
+            log basis x={2}
+        ]
+
+            \addplot[blue, mark = diamond*] table [x = {x}, y = {ds2}] {\dsComp};
+            \addplot[olive, mark = square*] table [x = {x}, y = {ds4}] {\dsComp};
+
+            \legend{
+                without insert,
+                with insert
+            }
+
+        \end{axis}
+
+    \end{tikzpicture}
+    \caption{The average per-tuple cost (in \textbf{microseconds}) to updated a single change with and without updating tuples using the reactive aggregator (RA) with ArgMax, with different window sizes.}
+    \label{fig:fig6Comp}
 \end{figure}
 
 \section{Applied Method}
