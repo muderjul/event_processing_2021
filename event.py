@@ -8,7 +8,9 @@ class Event:
         return self.key
 
     def __eq__(self, other):
-        if isinstance(other, Event):
+        if other is None:
+            return False
+        elif isinstance(other, Event):
             return self.key == other.key
         else:
             try:
@@ -17,6 +19,9 @@ class Event:
                 return False
 
         return False
+
+    def __hash__(self):
+        return self.key.__hash__()
 
     def __repr__(self):
         return f"Event(timestamp={self.timestamp}, key={self.key}, value={self.value})"

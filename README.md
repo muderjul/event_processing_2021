@@ -10,11 +10,11 @@ Task: Develop a simple streaming aggregator in your favourite programming langua
 
 # TODO
 1. develop aggregator, windowingLibrary and FlatFat (Done)
-1. Create FlatFat and Reactive aggregator with static size (Julian)
-1. adapt RA for using fixed size windows (discarding timestamps) and sliding/update size  (TODO)
-1. Implement timing for RA (per tuple times and tuple/sec measurements) (TODO)
+1. Create FlatFat and Reactive aggregator with static size (Done)
+1. adapt RA for using fixed size windows (discarding timestamps) and sliding/update size  (Done)
+1. Implement timing for RA (per tuple times and tuple/sec measurements) (Julian)
 1. Run tests on synthetic data
-    1. Create Synthetic streams (Richard)
+    1. Create Synthetic streams (Done)
         * Read section 6.1 and try to build synthetic data based on information on streams used in the paper (if possible)
         * create stream all ordered (only insert, evict) (each arg is unique)
         * create stream with non FIFO data (timestamps out of order)

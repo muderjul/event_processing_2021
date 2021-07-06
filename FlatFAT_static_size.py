@@ -9,14 +9,17 @@ class FlatFATs(object):
         # save at which depth in a binary tree the leafs begin, size is implicitly increased up to next power of 2
         self.leafsDepth = ceil(log(size, 2))
         # more than just the size because we need to save intermediate nodes as well
-        self.locations = [None for i in range(2**(self.leafsDepth)-1+size)]
+        self.locations = [None for i in range(2**(self.leafsDepth) -1 + size)]
 
     def new(self, locations):
         # should only be called on empty trees, does not check if any locations would be overwritten
         if len(locations) > 2**self.leafsDepth:
             raise ValueError("Locations is too much for this tree")
         for i in range(len(locations)):
-            self.locations[2**self.leafsDepth - 1 + i] = lift(locations[i])
+            if isinstance(locations[i], Event):
+                self.locations[2**self.leafsDepth - 1 + i] = lift(locations[i])
+            else:
+                self.locations[2**self.leafsDepth - 1 + i] = locations[i]
         # update all intermediate results
         self.combine()
 
@@ -35,11 +38,7 @@ class FlatFATs(object):
                 if type == "evict":
                     self.locations[insertInto] = None
                 else:
-                    # catch case where we update to a bigger tree and location is already a dict instead of Event
-                    if type == "insert" and not isinstance(location, Event):
-                        self.locations[insertInto] = location
-                    else:
-                        self.locations[insertInto] = lift(location)
+                    self.locations[insertInto] = lift(location)
             # update all intermediate results
             ## TODO maybe make smart location wise updates with indices?
             self.combine()
@@ -89,12 +88,11 @@ class FlatFATs(object):
         else:
             return self.suffix(toplevel//2, depth-1)
 
-
     def combine(self):
         # update all intermediate results, go from leafs to root (range index running to 0)
         for depth in range(self.leafsDepth-1, -1, -1):
             # run trough depths descending first and through nodes per level ascending second
-            for nodeIndex in range(2**depth):
+            for nodeIndex in range(min(len(self.locations[2**(depth+1)-1:])//2, 2**depth)):
                 # check if any of the children are not set and ignore/unset values if necessary
                 if self.locations[2**(depth+1) - 1 + 2*nodeIndex] is None:
                     if self.locations[2**(depth+1) - 1 + 2*nodeIndex + 1] is None:
