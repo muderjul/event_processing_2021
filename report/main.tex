@@ -112,13 +112,15 @@ Thus, our implementation is oriented after the original implementation architect
 	\includegraphics[width=\linewidth]{figures/original_architecture}
 	\caption{Overview of the approach published in~\cite{GeneralIncremental15}}
 	\label{fig:original_architecture}
-\end{figure}\begin{figure}
+\end{figure}
+
+\begin{figure}
     \centering
     \begin{tikzpicture}
         \begin{axis}[
             xmode=log,
-            xmin = 1, xmax = 1024,
-            ymin = 0, ymax = 300,
+            xmin = 1, xmax = 8192,
+            ymin = 0, ymax = 750,
             grid = both,
             minor tick num = 1,
             major grid style = {lightgray},
@@ -159,7 +161,7 @@ Thus, our implementation is oriented after the original implementation architect
         \begin{axis}[
             xmode=log,
             xmin = 1, xmax = 8192,
-            ymin = 0, ymax = 500000,
+            ymin = 0, ymax = 450000,
             grid = both,
             minor tick num = 1,
             major grid style = {lightgray},
@@ -186,7 +188,7 @@ Thus, our implementation is oriented after the original implementation architect
         \begin{axis}[
             xmode=log,
             xmin = 1, xmax = 1024,
-            ymin = 0, ymax = 0.25,
+            ymin = 0, ymax = 0.2,
             grid = both,
             minor tick num = 1,
             major grid style = {lightgray},
@@ -212,8 +214,8 @@ Thus, our implementation is oriented after the original implementation architect
     \begin{tikzpicture}
         \begin{axis}[
             xmode=log,
-            xmin = 1, xmax = 1024,
-            ymin = 0, ymax = 4000,
+            xmin = 1, xmax = 8192,
+            ymin = 0, ymax = 100,
             grid = both,
             minor tick num = 1,
             major grid style = {lightgray},
@@ -227,10 +229,12 @@ Thus, our implementation is oriented after the original implementation architect
 
             \addplot[blue, mark = diamond*] table [x = {x}, y = {ds2}] {\dsComp};
             \addplot[olive, mark = square*] table [x = {x}, y = {ds4}] {\dsComp};
+            \addplot[purple, mark = triangle*] table [x = {x}, y = {ds5}] {\dsComp};
 
             \legend{
                 without insert,
-                with insert
+                with insert (20 different users),
+                with insert (500 different users)
             }
 
         \end{axis}

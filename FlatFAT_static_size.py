@@ -21,12 +21,13 @@ class FlatFATs(object):
             else:
                 self.locations[2**self.leafsDepth - 1 + i] = locations[i]
         # update all intermediate results
-        self.combine()
+        self.combine({x for x in range(len(self.locations[2**(self.leafsDepth)-1:]))})
 
 
     def update(self, locations, type):
         # fail if any fail (i.e. Catch and raise value error in case trigger or evict have no target)
         try:
+            changes = set()
             for location in locations:
                 # insert -> find first free slot. evict, trigger -> find first occurence of 'arg'
                 if type == "insert":
@@ -34,6 +35,7 @@ class FlatFATs(object):
                 else:
                     # comparison to location is intended to abuse internal __eq__ method
                     insertInto = self.locations.index(location, 2**self.leafsDepth - 1)
+                changes.add(insertInto - 2**self.leafsDepth + 1)
                 # evict -> set to None. insert, trigger -> set to given location
                 if type == "evict":
                     self.locations[insertInto] = None
@@ -41,7 +43,7 @@ class FlatFATs(object):
                     self.locations[insertInto] = lift(location)
             # update all intermediate results
             ## TODO maybe make smart location wise updates with indices?
-            self.combine()
+            self.combine(changes)
         except ValueError as e:
             if type == "insert":
                 raise ValueError("Not enough space to insert")
@@ -88,22 +90,34 @@ class FlatFATs(object):
         else:
             return self.suffix(toplevel//2, depth-1)
 
-    def combine(self):
+    def combine(self, indices=set()):
         # update all intermediate results, go from leafs to root (range index running to 0)
-        for depth in range(self.leafsDepth-1, -1, -1):
+        for depth in range(self.leafsDepth, -1, -1):
+            if len(indices) == 0:
+                return
+            if depth == self.leafsDepth:
+                indices = {nodeIndex//2 for nodeIndex in indices}
+                continue
             # run trough depths descending first and through nodes per level ascending second
-            for nodeIndex in range(min(len(self.locations[2**(depth+1)-1:])//2, 2**depth)):
+            indicesInLevel = indices
+            indices = set()
+            while len(indicesInLevel) > 0:
+                nodeIndex = indicesInLevel.pop()
                 # check if any of the children are not set and ignore/unset values if necessary
                 if self.locations[2**(depth+1) - 1 + 2*nodeIndex] is None:
-                    if self.locations[2**(depth+1) - 1 + 2*nodeIndex + 1] is None:
-                        self.locations[2**depth - 1 + nodeIndex] = None
+                    if 2**(depth+1) - 1 + 2*nodeIndex + 1 >= len(self.locations) or self.locations[2**(depth+1) - 1 + 2*nodeIndex + 1] is None:
+                        newValue = None
                     else:
-                        self.locations[2**depth - 1 + nodeIndex] = self.locations[2**(depth+1) - 1 + 2*nodeIndex + 1]
+                        newValue = self.locations[2**(depth+1) - 1 + 2*nodeIndex + 1]
                 else:
-                    if self.locations[2**(depth+1) - 1 + 2*nodeIndex + 1] is None:
-                        self.locations[2**depth - 1 + nodeIndex] = self.locations[2**(depth+1) - 1 + 2*nodeIndex]
+                    if 2**(depth+1) - 1 + 2*nodeIndex + 1 >= len(self.locations) or self.locations[2**(depth+1) - 1 + 2*nodeIndex + 1] is None:
+                        newValue = self.locations[2**(depth+1) - 1 + 2*nodeIndex]
                     else:
-                        self.locations[2**depth - 1 + nodeIndex] = combine(self.locations[2**(depth+1) - 1 + 2*nodeIndex], self.locations[2**(depth+1) - 1 + 2*nodeIndex + 1])
+                        newValue = combine(self.locations[2**(depth+1) - 1 + 2*nodeIndex], self.locations[2**(depth+1) - 1 + 2*nodeIndex + 1])
+                if self.locations[2**depth - 1 + nodeIndex] != newValue:
+                    if depth > 0:
+                        indices.add(nodeIndex//2)
+                self.locations[2**depth - 1 + nodeIndex] = newValue
 
     def getLocations(self):
         return self.locations[2**self.leafsDepth - 1:]

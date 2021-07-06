@@ -15,6 +15,7 @@ def runTest(dataset_name, window_size, max_events, sliding_granularity, progress
 
 if __name__ == '__main__':
     dataset_name = "dataset2_unique_names_only_5m"
+    print("from Scratch")
     for i in [2**x for x in range(14)]:
         combinedTime = 0
         time = 0
@@ -31,7 +32,22 @@ if __name__ == '__main__':
                 print("%f, \t%d" % (combinedTime/k*1000000, k), end='\r')
         print(combinedTime/k*1000000)
 
-    for i in [1, 2, 4, 8, 10, 16, 25, 32, 50, 64, 75, 100, 128, 150, 200, 256, 512, 1024]:
+    print("ds4")
+    for i in [2**x for x in range(14)]:
+        test = (-1, i, 1)
+        print("Running test: Max Events: %d, window_size = %d, sliding_granularity = %d" % test)
+        (tuples, time) = runTest("dataset4_20_names_only_5m", test[1], test[0], test[2], progress=True)
+        print(time/tuples*1000000, " "*50)
+
+    print("ds5")
+    for i in [2**x for x in range(14)]:
+        test = (-1, i, 1)
+        print("Running test: Max Events: %d, window_size = %d, sliding_granularity = %d" % test)
+        (tuples, time) = runTest("dataset5_500_names_only_5m", test[1], test[0], test[2], progress=True)
+        print(time/tuples*1000000, " "*50)
+
+    print("sliding")
+    for i in [2**x for x in range(14)]:
         for j in set([1, 4, 64, i//16, i//4, i]):
             if i < j or j == 0:
                 continue
@@ -40,8 +56,9 @@ if __name__ == '__main__':
             (tuples, time) = runTest(dataset_name, test[1], test[0], test[2], progress=True)
             print(time/tuples*1000000, " "*50)
 
-    for i in [1, 2, 4, 8, 10, 16, 25, 32, 50, 64, 75, 100, 128, 150, 200, 256, 512, 1024]:
+    print("throughput additional")
+    for i in [10, 25, 50, 75, 100, 150, 200]:
         test = (-1, i, 1)
         print("Running test: Max Events: %d, window_size = %d, sliding_granularity = %d" % test)
-        (tuples, time) = runTest("dataset4_20_names_only_5m", test[1], test[0], test[2], progress=True)
+        (tuples, time) = runTest(dataset_name, test[1], test[0], test[2], progress=True)
         print(time/tuples*1000000, " "*50)
