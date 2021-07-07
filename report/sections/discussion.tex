@@ -1,1 +1,10 @@
-As a summary, we were unable to reproduce the results shown in the paper which probably has the reason that we have not the exact way of implementation proposed by the original paper. The fact that we did not use the exact same data sources could also be a factor leading to slightly different figures.
+As a summary, we were unable to reproduce the results shown in the paper which probably
+has the reason that we have not the exact way of implementation proposed by the original
+paper. The fact that we did not use the exact same data sources could also be a factor
+leading to slightly different figures. To extend on this report one might also implement
+the different operators as in the original paper to get results which are better comparable
+to the original ones (note that we compared our ArgMax operator to Max and StdDev operators).
+Additionally one might improve our implementation by adding front- and back-pointers as
+outlined in the original paper along with a \texttt{compact} function to be able to
+cirumvent using list comparison and therefore improving on the runtime of all
+\textit{insert, update} and \textit{evict} operations.
