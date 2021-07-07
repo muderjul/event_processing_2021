@@ -22,3 +22,43 @@ for such a comparison while our data sets were not able to guarantee the necessa
 (1, 1)-changes for figure 7. Due to the previously mentioned possible bugs in our
 implementation we decided to not replicate figure 9. We omitted comparing to figure 12
 to keep our focus on the speed of the implementation instead of a memory footprint.
+
+\subsubsection{Comparison for window aggregation from scratch}
+
+\subfile{../figures/figure8.tex}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\linewidth]{../figures/fig8}
+	\caption{Figure 8 in~\cite{GeneralIncremental15} - Time in microseconds to aggregate the whole window from scratch for different window sizes}
+	\label{fig:original_architecture}
+\end{figure}
+
+For replicating this figure we had almost no expectations. We knew beforehand that
+our runtimes would not reach those of the RA from the paper. Nevertheless we decided
+to include it as a sort of baseline of our comparison. We were able to reproduce the
+exponential growth that can be seen in the paper but even roughly comparing the
+values shows that our runtimes are much worse. In fact we see that our time is already
+more than 50 times worse for window size 1024, even increasing to 245 times for 8192.
+
+\subsubsection{Comparison for throughput}
+
+\subfile{../figures/figure6.tex}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\linewidth]{../figures/fig6}
+	\caption{Figure 8 in~\cite{GeneralIncremental15} - Throughput in million tuples per second for different window sizes}
+	\label{fig:original_architecture}
+\end{figure}
+
+\subsubsection{Comparison for average per-tuple cost}
+
+\subfile{../figures/figure10.tex}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\linewidth]{../figures/fig10}
+	\caption{Figure 10 in~\cite{GeneralIncremental15} -  Average tuple cost in microseconds for different sliding granularities and window sizes}
+	\label{fig:original_architecture}
+\end{figure}
