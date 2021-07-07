@@ -16,14 +16,14 @@
             legend pos = north west,
             log basis x={2}
         ]
-            
+
             \addplot[blue, mark = diamond*] table [x = {x}, y = {1}] {\figTen};
             \addplot[cyan, mark = *] table [x = {x}, y = {4}] {\figTen};
             \addplot[teal, mark = triangle*] table [x = {x}, y = {64}] {\figTen};
             \addplot[olive, mark = pentagon*] table [x = {x}, y = {n16}] {\figTen};
             \addplot[purple, mark = +] table [x = {x}, y = {n4}] {\figTen};
             \addplot[violet, mark = square*] table [x = {x}, y = {n}] {\figTen};
-            
+
             \legend{
                 m = 1,
                 m = 4,
@@ -32,10 +32,50 @@
                 m = n/4,
                 m = n
             }
-         
+
         \end{axis}
-     
+
     \end{tikzpicture}
     \caption{The average per-tuple cost (in \textbf{microseconds}) to update a batch of $m$ changes using the reactive aggregator (RA) with ArgMax, where the window size is $n$. (corresponds figure 10 \cite{GeneralIncremental15})}
     \label{fig:fig10Comp}
+\end{figure}
+\begin{figure}
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            xmode=log,
+            xmin = 1, xmax = 1024,
+            ymin = 0, ymax = 75,
+            grid = both,
+            minor tick num = 1,
+            major grid style = {lightgray},
+            minor grid style = {lightgray!25},
+            width = 0.5\textwidth,
+            height = 0.3\textwidth,
+            legend cell align = {left},
+            legend pos = north west,
+            log basis x={2}
+        ]
+
+            \addplot[blue, mark = diamond*] table [x = {x}, y = {1}] {\figTen};
+            \addplot[cyan, mark = *] table [x = {x}, y = {4}] {\figTen};
+            \addplot[teal, mark = triangle*] table [x = {x}, y = {64}] {\figTen};
+            \addplot[olive, mark = pentagon*] table [x = {x}, y = {n16}] {\figTen};
+            \addplot[purple, mark = +] table [x = {x}, y = {n4}] {\figTen};
+            \addplot[violet, mark = square*] table [x = {x}, y = {n}] {\figTen};
+
+            \legend{
+                m = 1,
+                m = 4,
+                m = 64,
+                m = n/16,
+                m = n/4,
+                m = n
+            }
+
+        \end{axis}
+
+    \end{tikzpicture}
+    \caption{\ref{fig:fig10Comp} with different scaling on the axis to have a better look on the lower end}
+    \label{fig:fig10CompZoom}
 \end{figure}
