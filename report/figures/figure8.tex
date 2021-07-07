@@ -1,0 +1,27 @@
+\pgfplotstableread[col sep=comma]{figures/fig8.dat}{\figEight}
+\begin{figure}
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            xmode=log,
+            xmin = 1, xmax = 8192,
+            ymin = 0, ymax = 450000,
+            grid = both,
+            minor tick num = 1,
+            major grid style = {lightgray},
+            minor grid style = {lightgray!25},
+            width = 0.5\textwidth,
+            height = 0.3\textwidth,
+            legend cell align = {left},
+            legend pos = north west,
+            log basis x={2}
+        ]
+            
+            \addplot[blue, mark = diamond*] table [x = {x}, y = {y}] {\figEight};
+         
+        \end{axis}
+     
+    \end{tikzpicture}
+    \caption{The time (in \textbf{microseconds}) to aggregate the whole window from scratch using the reactive aggregator (RA) with ArgMax.}
+    \label{fig:fig8Comp}
+\end{figure}

@@ -7,6 +7,7 @@
 
 \usepackage{float}
 \usepackage{pgfplots}
+\usepackage{subfiles}
 
 %% The following content must be adapted for the final version
 % paper-specific
@@ -20,14 +21,11 @@
 \newcommand\vldbauthors{\authors}
 \newcommand\vldbtitle{\shorttitle}
 % leave empty if no availability url should be set
-\newcommand\vldbavailabilityurl{URL_TO_YOUR_ARTIFACTS}
+\newcommand\vldbavailabilityurl{}
 % whether page numbers should be shown or not, use 'plain' for review versions, 'empty' for camera ready
 \newcommand\vldbpagestyle{plain}
 
-\pgfplotstableread[col sep=comma]{figures/fig10.dat}{\figTen}
-\pgfplotstableread[col sep=comma]{figures/fig8.dat}{\figEight}
-\pgfplotstableread[col sep=comma]{figures/fig6.dat}{\figSix}
-\pgfplotstableread[col sep=comma]{figures/ds2-4_comp.dat}{\dsComp}
+\pgfplotsset{compat = newest}
 
 \begin{document}
 \title{ArgMax in Sliding-Window Aggregation}
@@ -62,8 +60,7 @@
 %% The abstract is a short summary of the work to be presented in the
 %% article.
 \begin{abstract}
-We wanted to compare the general results for operators of the Reactive Aggregator approach from the original paper~\cite{GeneralIncremental15}
-with our own implementation, solely focussing on the ArgMax operator. Our main findings are that \ldots (see \autoref{obtained_results}).
+\subfile{sections/abstract.tex}
 \end{abstract}
 
 \maketitle
@@ -78,9 +75,6 @@ with our own implementation, solely focussing on the ArgMax operator. Our main f
 \begingroup
 \renewcommand\thefootnote{}\footnote{\noindent
 This work is licensed under the Creative Commons BY-NC-ND 4.0 International License. Visit \url{https://creativecommons.org/licenses/by-nc-nd/4.0/} to view a copy of this license. For any use beyond those covered by this license, obtain permission by emailing \href{mailto:info@vldb.org}{info@vldb.org}. Copyright is held by the owner/author(s). Publication rights licensed to the VLDB Endowment. \\
-\raggedright Proceedings of the VLDB Endowment, Vol. \vldbvolume, No. \vldbissue\ %
-ISSN 2150-8097. \\
-\href{https://doi.org/\vldbdoi}{doi:\vldbdoi} \\
 }\addtocounter{footnote}{-1}\endgroup
 %%% VLDB block end %%%
 
@@ -96,168 +90,27 @@ The source code, data, and all figures have been made available at \url{https://
 
 \section{Goal and Structure}
 \label{goal_and_structure}
+\subfile{sections/goal_structure.tex}
 
-The goal of this work was to reconstruct some of the work of~\cite{GeneralIncremental15}, using their conecpt of a so-called Reactive Aggregator. More specifically, we wanted to develop a simple streaming aggregator for the ArgMax operator, based on that approach. Despite limiting our work to a bare minimum at the implementation level, we wanted to compare the results of the paper with the results that we get from our experiments.
-
-Thus, our implementation is oriented after the original implementation architecture (see \autoref{fig:original_architecture}) which contains four main components:
-\begin{description}
-	\item[Windowing library:] processes the incoming data stream and informs the Reactive Aggregator about inserts, evicts or triggers (updates)
-	\item[Reactive Aggregator:] handles the overall flow of the application, receiving events from the windowing library and pushing them to the FlatFAT object
-	\item[FlatFAT:] contains all the intermediate results for the aggregation in a tree data structure, using the aggregation operations
-	\item[Aggregation operations:] defining the neccessary implementation of the three functions lift, combine and lower for each specific aggregation operation (we only focus on the ArgMax aggregation operation)
-\end{description}
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=\linewidth]{figures/original_architecture}
-	\caption{Overview of the approach published in~\cite{GeneralIncremental15}}
-	\label{fig:original_architecture}
-\end{figure}
-
-\begin{figure}
-    \centering
-    \begin{tikzpicture}
-        \begin{axis}[
-            xmode=log,
-            xmin = 1, xmax = 8192,
-            ymin = 0, ymax = 750,
-            grid = both,
-            minor tick num = 1,
-            major grid style = {lightgray},
-            minor grid style = {lightgray!25},
-            width = 0.5\textwidth,
-            height = 0.5\textwidth,
-            legend cell align = {left},
-            legend pos = north west,
-            log basis x={2}
-        ]
-
-            \addplot[blue, mark = diamond*] table [x = {x}, y = {1}] {\figTen};
-            \addplot[cyan, mark = *] table [x = {x}, y = {4}] {\figTen};
-            \addplot[teal, mark = triangle*] table [x = {x}, y = {64}] {\figTen};
-            \addplot[olive, mark = pentagon*] table [x = {x}, y = {n16}] {\figTen};
-            \addplot[purple, mark = +] table [x = {x}, y = {n4}] {\figTen};
-            \addplot[violet, mark = square*] table [x = {x}, y = {n}] {\figTen};
-
-            \legend{
-                m = 1,
-                m = 4,
-                m = 64,
-                m = n/16,
-                m = n/4,
-                m = n
-            }
-
-        \end{axis}
-
-    \end{tikzpicture}
-    \caption{The average per-tuple cost (in \textbf{microseconds}) to update a batch of $m$ changes using the reactive aggregator (RA) with ArgMax, where the window size is $n$.}
-    \label{fig:fig10Comp}
-\end{figure}
-
-\begin{figure}
-    \centering
-    \begin{tikzpicture}
-        \begin{axis}[
-            xmode=log,
-            xmin = 1, xmax = 8192,
-            ymin = 0, ymax = 450000,
-            grid = both,
-            minor tick num = 1,
-            major grid style = {lightgray},
-            minor grid style = {lightgray!25},
-            width = 0.5\textwidth,
-            height = 0.5\textwidth,
-            legend cell align = {left},
-            legend pos = north west,
-            log basis x={2}
-        ]
-
-            \addplot[blue, mark = diamond*] table [x = {x}, y = {y}] {\figEight};
-
-        \end{axis}
-
-    \end{tikzpicture}
-    \caption{The time (in \textbf{microseconds}) to aggregate the whole window from scratch using the reactive aggregator (RA) with ArgMax.}
-    \label{fig:fig8Comp}
-\end{figure}
-
-\begin{figure}
-    \centering
-    \begin{tikzpicture}
-        \begin{axis}[
-            xmode=log,
-            xmin = 1, xmax = 1024,
-            ymin = 0, ymax = 0.2,
-            grid = both,
-            minor tick num = 1,
-            major grid style = {lightgray},
-            minor grid style = {lightgray!25},
-            width = 0.5\textwidth,
-            height = 0.5\textwidth,
-            legend cell align = {left},
-            legend pos = north west,
-            log basis x={2}
-        ]
-
-            \addplot[blue, mark = diamond*] table [x = {x}, y = {y}] {\figSix};
-
-        \end{axis}
-
-    \end{tikzpicture}
-    \caption{The sustained throughput (in \textbf{million tuples per second}) for different window sizes using the reactive aggregator (RA) with ArgMax.}
-    \label{fig:fig6Comp}
-\end{figure}
-
-\begin{figure}
-    \centering
-    \begin{tikzpicture}
-        \begin{axis}[
-            xmode=log,
-            xmin = 1, xmax = 8192,
-            ymin = 0, ymax = 100,
-            grid = both,
-            minor tick num = 1,
-            major grid style = {lightgray},
-            minor grid style = {lightgray!25},
-            width = 0.5\textwidth,
-            height = 0.5\textwidth,
-            legend cell align = {left},
-            legend pos = north west,
-            log basis x={2}
-        ]
-
-            \addplot[blue, mark = diamond*] table [x = {x}, y = {ds2}] {\dsComp};
-            \addplot[olive, mark = square*] table [x = {x}, y = {ds4}] {\dsComp};
-            \addplot[purple, mark = triangle*] table [x = {x}, y = {ds5}] {\dsComp};
-
-            \legend{
-                without insert,
-                with insert (20 different users),
-                with insert (500 different users)
-            }
-
-        \end{axis}
-
-    \end{tikzpicture}
-    \caption{The average per-tuple cost (in \textbf{microseconds}) to updated a single change with and without updating tuples using the reactive aggregator (RA) with ArgMax, with different window sizes.}
-    \label{fig:fig6Comp}
-\end{figure}
+\subfile{figures/figure10.tex}
+\subfile{figures/figure8.tex}
+\subfile{figures/figure6.tex}
+\subfile{figures/ds2-4_comp.tex}
 
 \section{Applied Method}
 \label{applied_methods}
 
-\ldots
+\subfile{sections/implementation.tex}
 
 \section{Obtained Results}
 \label{obtained_results}
 
-\ldots
+\subfile{sections/evaluation.tex}
 
 \section{Discussion}
 \label{discussion}
 
-\ldots
+\subfile{sections/discussion.tex}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % example of figure and ref from the template:

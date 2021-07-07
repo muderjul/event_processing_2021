@@ -1,0 +1,35 @@
+\pgfplotstableread[col sep=comma]{figures/ds2-4_comp.dat}{\dsComp}
+\begin{figure}
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            xmode=log,
+            xmin = 1, xmax = 8192,
+            ymin = 0, ymax = 100,
+            grid = both,
+            minor tick num = 1,
+            major grid style = {lightgray},
+            minor grid style = {lightgray!25},
+            width = 0.5\textwidth,
+            height = 0.3\textwidth,
+            legend cell align = {left},
+            legend pos = north west,
+            log basis x={2}
+        ]
+            
+            \addplot[blue, mark = diamond*] table [x = {x}, y = {ds2}] {\dsComp};
+            \addplot[olive, mark = square*] table [x = {x}, y = {ds4}] {\dsComp};
+            \addplot[purple, mark = triangle*] table [x = {x}, y = {ds5}] {\dsComp};
+            
+            \legend{
+                without insert (unique),
+                with insert (20),
+                with insert (500)
+            }
+         
+        \end{axis}
+     
+    \end{tikzpicture}
+    \caption{The average per-tuple cost (in \textbf{microseconds}) to updated a single change with and without updating tuples using the reactive aggregator (RA) with ArgMax, with different window sizes.}
+    \label{fig:dsComp}
+\end{figure}
