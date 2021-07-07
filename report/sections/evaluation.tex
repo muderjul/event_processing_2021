@@ -1,7 +1,7 @@
-For our evaluation we decided to mirror the papers evaluation as closely as possible
+For our evaluation we decided to mirror the paper's evaluation as closely as possible
 to see if we were able to replicate the results obtained there.
-Therefore our baseline is the given implementation of RA in the paper.
-Although we compare ourselves to the other implementation we decided to focus on
+Therefore, our baseline is the given implementation of RA in the paper.
+Although we compare ourselves to the other implementation, we decided to focus on
 replicating the asymptotic results rather than beating the raw performance of their implementation.
 
 \subsection{Experimental Setup}
@@ -10,14 +10,14 @@ window sizes and used sliding granularity of 1 where not specified.
 Further information on our data streams can be taken from our Data Generation section \ref{sec:dg}.
 To limit the tests and to gain the possibility of rerunning the tests with different configurations
 and iterations of our implementation we limited ourselves to 5 million tuples and
-a cap of 180 seconds spend only inside our reactive aggregator per run
+a cap of 180 seconds spent only inside our reactive aggregator per run
 which sums up to a maximum just short of 6 hours per run of the full evaluation suite.
-We ran all tests on a 4-core 2.3 Ghz Intel Core i7 with 32 GB of RAM, using
-Python 3.7.3 and MacOS 10.15.7
+We ran all tests on a 4-core 2.3 GHz Intel Core i7 with 32 GB of RAM, using
+Python 3.7.3 and MacOS 10.15.7.
 
 \subsection{Results and Analysis}
 Since we were interested in replicating the papers results, we decided to
-recreate figures (in the paper) 6, 8 and 10. Tables 3 and 4 as well as figure 11 were not suited
+recreate figures (in the paper) 6, 8 and 10. Tables 3 and 4 as well as figure 11 were not suitable
 for such a comparison while our data sets were not able to guarantee the necessary
 (1, 1)-changes for figure 7. Due to the previously mentioned possible bugs in our
 implementation we decided to not replicate figure 9. We omitted comparing to figure 12
@@ -52,7 +52,13 @@ more than 50 times worse for window size 1024, even increasing to 245 times for 
 	\label{fig:original_architecture}
 \end{figure}
 
-We hoped to reproduce the asymptotic trend of the throughput in relation to different window sizes as in the original paper. Unfortunately, we were not able to reproduce this trend properly. We assume that we may have some problems with our implementation in a way that omitting front-and-back-pointer forced us to search the whole list for empty spaces. This led to non-constant insertion time as compared to the original implementation. Nontheless, we noticed that for window sizes other than powers of two significant drops in throughput, which we assume to be due to the non-full binary tree in that case.
+We hoped to reproduce the asymptotic trend of the throughput in relation to different window sizes as in the original paper.
+Unfortunately, we were not able to reproduce this trend properly.
+We assume that we may have some problems with our implementation in a way that omitting front-and-back-pointer
+forced us to search the whole list for empty spaces.
+This led to non-constant insertion time as compared to the original implementation.
+Nonetheless, we noticed that for window sizes other than powers of two significant drops in throughput,
+which we assume to be due to the non-full binary tree in that case.
 
 \subsubsection{Comparison for average per-tuple cost}
 
@@ -65,10 +71,16 @@ We hoped to reproduce the asymptotic trend of the throughput in relation to diff
 	\label{fig:original_architecture}
 \end{figure}
 
-We hoped to reproduce the asymptotic trend of the average tuple cost in relation to different sliding granularities, as with the previous figure. Although we have a way lower window size in our experiment, we already see that the results diverge from the trend of the original figure as they do not follow the same constant/linear trend. Nontheless, we see the expected improvements for the different sliding granularities.
+We hoped to reproduce the asymptotic trend of the average tuple cost in relation to different sliding granularities, as with the previous figure.
+Although we have a way lower window size in our experiment,
+we already see that the results diverge from the trend of the original figure as they do not follow the same constant/linear trend.
+Nonetheless, we see the expected improvements for the different sliding granularities.
 
 \subsubsection{Comparison of the evict, insert and update operation runtimes}
 
 \subfile{../figures/ds2-4_comp.tex}
 
-As an extension to the comparisons of the original paper, we decided to include a test trying to compare the combined insert and evict operations and the update operation. We expected the datasets with the repeating tuples which are exactly the ones using update operations to be faster because they save one operation. As we see in our result figure, this expectation holds true. Additionally, we see that starting with a certain window size, the runtime stagnates to be constant which we attribute to our datasets, which only contain 20/500 unique keys.
+As an extension to the comparisons of the original paper, we decided to include a test trying to compare the combined insert and evict operations and the update operation.
+We expected the datasets with the repeating tuples which are exactly the ones using update operations to be faster because they save one operation.
+As we see in our result figure, this expectation holds true.
+Additionally, we see that starting with a certain window size, the runtime stagnates to be constant which we attribute to our datasets, which only contain 20/500 unique keys.
