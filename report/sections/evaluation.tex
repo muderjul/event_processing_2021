@@ -52,6 +52,8 @@ more than 50 times worse for window size 1024, even increasing to 245 times for 
 	\label{fig:original_architecture}
 \end{figure}
 
+We hoped to reproduce the asymptotic trend of the throughput in relation to different window sizes as in the original paper. Unfortunately, we were not able to reproduce this trend properly. We assume that we may have some problems with our implementation in a way that omitting front-and-back-pointer forced us to search the whole list for empty spaces. This led to non-constant insertion time as compared to the original implementation. Nontheless, we noticed that for window sizes other than powers of two significant drops in throughput, which we assume to be due to the non-full binary tree in that case.
+
 \subsubsection{Comparison for average per-tuple cost}
 
 \subfile{../figures/figure10.tex}
@@ -62,3 +64,11 @@ more than 50 times worse for window size 1024, even increasing to 245 times for 
 	\caption{Figure 10 in~\cite{GeneralIncremental15} -  Average tuple cost in microseconds for different sliding granularities and window sizes}
 	\label{fig:original_architecture}
 \end{figure}
+
+We hoped to reproduce the asymptotic trend of the average tuple cost in relation to different sliding granularities, as with the previous figure. Although we have a way lower window size in our experiment, we already see that the results diverge from the trend of the original figure as they do not follow the same constant/linear trend. Nontheless, we see the expected improvements for the different sliding granularities.
+
+\subsubsection{Comparison of the evict, insert and update operation runtimes}
+
+\subfile{../figures/ds2-4_comp.tex}
+
+As an extension to the comparisons of the original paper, we decided to include a test trying to compare the combined insert and evict operations and the update operation. We expected the datasets with the repeating tuples which are exactly the ones using update operations to be faster because they save one operation. As we see in our result figure, this expectation holds true. Additionally, we see that starting with a certain window size, the runtime stagnates to be constant which we attribute to our datasets, which only contain 20/500 unique keys.

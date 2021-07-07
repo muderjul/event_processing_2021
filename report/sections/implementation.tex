@@ -23,6 +23,8 @@ for keeping the sliding window in place.
 The Reactive Aggregator was mainly implemented as a wrapper around the FlatFAT with some extra checks
 and the FlatFAT performs all aggregation operations on the sliding window.
 
+The source code, data, and all figures have been made available at \url{https://github.com/muderjul/event\_processing\_2021}.
+
 \subsection{Data Generation}
 \label{sec:dg}
 
@@ -95,4 +97,4 @@ marked by the passed indices. This allows for quick and precise updates.
 \subsection{Aggregation Operations}
 Since we limited our scope to ArgMax these are very basic and hard-coded. With \texttt{lift(a)}
 transforming an input event a into our internal dict format, \texttt{combine(a, b)} returning ArgMax(a, b)
-and \texttt{lower(a)} returning Arg(a) for two dict objects a and b.
+and \texttt{lower(a)} returning Arg(a) for two dict objects a and b
