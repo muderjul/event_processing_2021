@@ -1,5 +1,5 @@
 from windowing_library import simulate_window
-from ReactiveAggregator_static import ReactiveAggregatorStatic as ReactiveAggregator
+from ReactiveAggregator import ReactiveAggregator
 
 def runTest(dataset_name, window_size, max_events, sliding_granularity, progress):
     ran = False
@@ -10,11 +10,14 @@ def runTest(dataset_name, window_size, max_events, sliding_granularity, progress
             (tuples, time) = simulate_window(dataset_name, reactive_aggregator, max_events=max_events, window_size=window_size, sliding_granularity=sliding_granularity, progress=progress)
             ran = True
             return (tuples, time)
+        # catch resize error and run tests with smallest possible tree size
         except ValueError as e:
             tree_size += 1
 
 if __name__ == '__main__':
     dataset_name = "dataset2_unique_names_only_5m"
+
+    # sample from scratch window allocation times: Fig8
     print("from Scratch")
     for i in [2**x for x in range(14)]:
         combinedTime = 0
@@ -32,6 +35,7 @@ if __name__ == '__main__':
                 print("%f, \t%d" % (combinedTime/k*1000000, k), end='\r')
         print(combinedTime/k*1000000)
 
+    # sample dataset 4 - 20 names
     print("ds4")
     for i in [2**x for x in range(14)]:
         test = (-1, i, 1)
@@ -39,6 +43,7 @@ if __name__ == '__main__':
         (tuples, time) = runTest("dataset4_20_names_only_5m", test[1], test[0], test[2], progress=True)
         print(time/tuples*1000000, " "*50)
 
+    # sample dataset 5 - 500 names
     print("ds5")
     for i in [2**x for x in range(14)]:
         test = (-1, i, 1)
@@ -46,6 +51,7 @@ if __name__ == '__main__':
         (tuples, time) = runTest("dataset5_500_names_only_5m", test[1], test[0], test[2], progress=True)
         print(time/tuples*1000000, " "*50)
 
+    # sample different sliding_granularities, Fig10
     print("sliding")
     for i in [2**x for x in range(14)]:
         for j in set([1, 4, 64, i//16, i//4, i]):
@@ -56,6 +62,7 @@ if __name__ == '__main__':
             (tuples, time) = runTest(dataset_name, test[1], test[0], test[2], progress=True)
             print(time/tuples*1000000, " "*50)
 
+    # sample additional data points for throughput (some already in sliding section), Fig6
     print("throughput additional")
     for i in [10, 25, 50, 75, 100, 150, 200]:
         test = (-1, i, 1)

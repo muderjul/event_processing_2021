@@ -1,192 +1,191 @@
 from helper_functions import lift, combine, lower
-from math import log, ceil
+from math import log, ceil, floor
+
+from event import Event
 
 class FlatFAT(object):
 
-    def __init__(self, tuple=None, leftChild=None, rightChild=None):
-        self.tuple = tuple
-        self.leftChild = leftChild
-        self.rightChild = rightChild
+    def __init__(self, size):
+        # save at which depth in a binary tree the leafs begin, size is implicitly increased up to next power of 2
+        self.leafsDepth = ceil(log(size, 2))
+        # more than just the size because we need to save intermediate nodes as well
+        self.locations = [None for i in range(2**(self.leafsDepth) -1 + size)]
 
     def new(self, locations):
-        if len(locations) == 1:
-            try:
-                self.tuple = lift(locations[0])
-            except AttributeError as E:
-                self.tuple = locations[0]
-        elif len(locations) > 1:
-            depth = ceil(log(len(locations), 2))
-            self.leftChild = FlatFAT()
-            self.leftChild.new(locations[:2**(depth-1)])
-            self.rightChild = FlatFAT()
-            self.rightChild.new(locations[2**(depth-1):])
-            self.tuple = combine(self.leftChild.getTuple(), self.rightChild.getTuple())
-        else:
-            return
+        # should only be called on empty trees, does not check if any locations would be overwritten
+        if len(locations) > 2**self.leafsDepth:
+            raise ValueError("Locations is too much for this tree")
+        for i in range(len(locations)):
+            if isinstance(locations[i], Event):
+                self.locations[2**self.leafsDepth - 1 + i] = lift(locations[i])
+            else:
+                self.locations[2**self.leafsDepth - 1 + i] = locations[i]
+        # update all intermediate results
+        self.combine({x for x in range(len(self.locations[2**(self.leafsDepth)-1:]))})
+
 
     def update(self, locations, type):
-        if type == "insert":
+        # fail if any fail (i.e. Catch and raise value error in case trigger or evict have no target)
+        try:
+            changes = set()
             for location in locations:
-                if self.leftChild is not None:
-                    if self.rightChild is not None: # both set
-                        lcSize = self.leftChild.getSize()
-                        rcSize = self.rightChild.getSize()
-                        if log(lcSize, 2) != ceil(log(lcSize, 2)): # left space
-                            self.leftChild.update([location], type)
-                        elif log(rcSize, 2) != ceil(log(rcSize, 2)): # right space
-                            self.rightChild.update([location], type)
-                        elif rcSize < lcSize: # both need a new depth layer, but right is smaller than left
-                            self.rightChild.update([location], type)
-                        else: # both need a new depth layer but left is LEQ than right
-                            self.leftChild.update([location], type)
-                        self.tuple = combine(self.leftChild.getTuple(), self.rightChild.getTuple())
-                    else: # left set only
-                        self.rightChild = FlatFAT()
-                        self.rightChild.new([location])
-                        self.tuple = combine(self.leftChild.getTuple(), self.rightChild.getTuple())
-                else: # left not set
-                    if self.rightChild is not None: # right set only
-                        self.leftChild = FlatFAT()
-                        self.leftChild.new([location])
-                        self.tuple = combine(self.rightChild.getTuple(), self.leftChild.getTuple())
-                    else: # both not set
-                        if self.tuple is None:
-                            self.tuple = lift(location)
-                        else:
-                            self.leftChild = FlatFAT()
-                            self.leftChild.new([self.tuple])
-                            self.rightChild = FlatFAT()
-                            self.rightChild.new([location])
-                            self.tuple = combine(self.leftChild.getTuple(), self.rightChild.getTuple())
-
-        elif type == "evict":
-            for location in locations:
-                if self.leftChild is not None:
-                    if self.rightChild is not None: # both childs not empty
-                        if self.leftChild.update([location], type) == 0: # left child update returns non-empty tree
-                            if self.rightChild.update([location], type) == 0: # right child update returns non-empty tree
-                                self.tuple = combine(self.leftChild.getTuple(), self.rightChild.getTuple())
-                                return 0
-                            else: # right child update returned empty tree
-                                # todo compact left tree?
-                                self.tuple = self.leftChild.getTuple()
-                                self.rightChild = None
-                                return 0
-                        else: # left side update returned empty tree
-                            self.leftChild = None
-                            if self.rightChild.update([location], type) == 0: # right child update returns non-empty tree
-                                # todo compact right tree?
-                                self.tuple = self.rightChild.getTuple()
-                                return 0
-                            else: # both tree sides empty, return compacting upwards
-                                return -1
-                    else: # right child empty, left child not empty
-                        if self.leftChild.update([location], type) == 0: # left child not empty after update
-                            self.tuple = self.leftChild.getTuple()
-                            return 0
-                        else: # both children empty after update
-                            return -1
+                # insert -> find first free slot. evict, trigger -> find first occurence of 'arg'
+                if type == "insert":
+                    insertInto = self.locations.index(None, 2**self.leafsDepth - 1)
                 else:
-                    if self.rightChild is not None: # left child empty, right child not empty
-                        if self.rightChild.update([location], type) == 0: # right child not empty after update
-                            self.tuple = self.rightChild.getTuple()
-                            return 0
-                        else: # both children empty after update
-                            return -1
-                    else: # we are root and only node
-                        if self.tuple["arg"] == location.getKey():
-                            self.tuple = None
-                            return -1
-                        else:
-                            return 0
-
-        elif type == "trigger":
-            for location in locations:
-                if self.leftChild is not None:
-                    self.leftChild.update([location], type)
-                    if self.rightChild is not None: # left and right not empty
-                        self.rightChild.update([location], type)
-                        self.tuple = combine(self.leftChild.getTuple(), self.rightChild.getTuple())
-                    else: # right side empty, one sided update
-                        self.tuple = self.leftChild.getTuple()
+                    # comparison to location instead of lift(location) is intended to abuse internal __eq__ method
+                    insertInto = self.locations.index(location, 2**self.leafsDepth - 1)
+                changes.add(insertInto - 2**self.leafsDepth + 1)
+                # evict -> set to None. insert, trigger -> set to given location
+                if type == "evict":
+                    self.locations[insertInto] = None
                 else:
-                    if self.rightChild is not None: # left empty and right not empty
-                        self.rightChild.update([location], type)
-                        self.tuple = self.rightChild.getTuple()
-                    else: # we are leaf
-                        if self.tuple["arg"] == location.getKey(): # check if we should update
-                            self.tuple = lift(location)
-                        else: # arg does not match, noop
-                            continue
+                    self.locations[insertInto] = lift(location)
+            # update intermediate results for all changed leafs
+            self.combine(changes)
+        except ValueError as e:
+            if type == "insert":
+                raise ValueError("Not enough space to insert")
+            elif type == "trigger":
+                raise ValueError("location for trigger could not be found")
+            elif type == "evict":
+                raise ValueError("location for evict could not be found")
             else:
-                pass # cannot happen
+                raise e
 
-    def getTuple(self):
-        return self.tuple
-
-    def aggregate(self):
-        return self.tuple
-
-    def prefix(self, i):
-        if self.leftChild is not None:
-            lcSize = self.leftChild.size()
-            if lcSize == i:
-                return self.leftChild.getTuple()
-            elif lcSize < i:
-                return self.leftChild.prefix(i)
-            else:
-                i -= lcSize
-                if self.rightChild is not None:
-                    rcSize = self.rightChild.size()
-                    if rcSize >= i:
-                        return combine(self.leftChild.getTuple(), self.rightChild.getTuple())
-                    else:
-                        return combine(self.leftChild.getTuple(), self.rightChild.prefix(i))
+    def prefix(self, i, depth=-1):
+        # no depth given, start at bottom by default
+        if depth == -1:
+            depth = self.leafsDepth
+        # 0 -> might be called improperly or recursion end
+        if i == 0:
+            return None
+        # 1 -> special case because of 2**0
+        elif i == 1:
+            return self.locations[2**depth - 1]
+        # save how many locations still have a full intermediate result one depth above
+        toplevel = 2**floor(log(i, 2))
+        if toplevel != i:
+            # differs by exactly one -> combine stray result with prefix of tree with depth-1
+            return combine(self.locations[2**depth - 1 + i - 1], self.prefix(toplevel//2, depth-1))
         else:
-            if self.rightChild is not None:
-                if self.rightChild.getSize() > i:
-                    return self.rightChild.prefix(i)
-                else:
-                    return self.rightChild.getTuple()
-            else:
-                return self.tuple
+            # == i but cannot be 0 -> i is power of 2
+            return self.prefix(toplevel//2, depth-1)
 
-    def suffix(self, i):
-        if self.rightChild is not None:
-            rcSize = self.rightChild.size()
-            if rcSize == i:
-                return self.rightChild.getTuple()
-            elif rcSize < i:
-                return self.rightChild.suffix(i)
+
+    def suffix(self, i, depth=-1):
+        if depth == -1:
+            depth = self.leafsDepth
+        if i == 0:
+            return None
+        elif i == 1:
+            return self.locations[2**(depth+1) - 2]
+        toplevel = 2**floor(log(i, 2))
+        if toplevel != i:
+            if toplevel == 0:
+                return self.locations[2**(depth+1) - 2 - i + 1]
             else:
-                i -= rcSize
-                if self.leftChild is not None:
-                    lcSize = self.leftChild.size()
-                    if lcSize >= i:
-                        return combine(self.rightChild.getTuple(), self.leftChild.getTuple())
-                    else:
-                        return combine(self.rightChild.getTuple(), self.leftChild.suffix(i))
+                return combine(self.locations[2**(depth+1) - 2 - i + 1], self.suffix(toplevel//2, depth-1))
         else:
-            if self.leftChild is not None:
-                if self.leftChild.getSize() > i:
-                    return self.leftChild.suffix(i)
+            return self.suffix(toplevel//2, depth-1)
+
+    def combine(self, indices=set()):
+        # update all intermediate results, go from leafs to root (range index running towards 0)
+        # run trough depths descending first and through nodes per level (given by indices)
+        for depth in range(self.leafsDepth, -1, -1):
+            # nothing to do, exit
+            if len(indices) == 0:
+                return
+
+            # handling entrypoint -> given leaf indices, convert to their parent indices
+            if depth == self.leafsDepth:
+                # very basic index modification since we add the offset via depth
+                indices = {nodeIndex//2 for nodeIndex in indices}
+                continue
+
+            indicesInLevel = indices
+            indices = set()
+
+            while len(indicesInLevel) > 0:
+                nodeIndex = indicesInLevel.pop()
+                # check if any of the children are not set and ignore/unset values if necessary
+                if self.locations[2**(depth+1) - 1 + 2*nodeIndex] is None:
+                    if 2**(depth+1) - 1 + 2*nodeIndex + 1 >= len(self.locations) or self.locations[2**(depth+1) - 1 + 2*nodeIndex + 1] is None:
+                        newValue = None
+                    else:
+                        newValue = self.locations[2**(depth+1) - 1 + 2*nodeIndex + 1]
                 else:
-                    return self.leftChild.getTuple()
-            else:
-                return self.tuple
+                    if 2**(depth+1) - 1 + 2*nodeIndex + 1 >= len(self.locations) or self.locations[2**(depth+1) - 1 + 2*nodeIndex + 1] is None:
+                        newValue = self.locations[2**(depth+1) - 1 + 2*nodeIndex]
+                    else:
+                        newValue = combine(self.locations[2**(depth+1) - 1 + 2*nodeIndex], self.locations[2**(depth+1) - 1 + 2*nodeIndex + 1])
+
+                # if we found an update, add the parent to our list of indices we need to check
+                if self.locations[2**depth - 1 + nodeIndex] != newValue:
+                    if depth > 0:
+                        # very basic index modification since we add the offset via depth
+                        indices.add(nodeIndex//2)
+                    self.locations[2**depth - 1 + nodeIndex] = newValue
+
+    def getLocations(self):
+        # returns list of all leaf nodes
+        return self.locations[2**self.leafsDepth - 1:]
 
     def getSize(self):
-        size = 0
-        if self.leftChild is None and self.rightChild is None:
-            return 1
-        if self.leftChild is not None:
-            size += self.leftChild.getSize()
-        if self.rightChild is not None:
-            size += self.rightChild.getSize()
-        return size
+        return 2**self.leafsDepth
+
+    def aggregate(self):
+        # return root result, may be None if no locations are available
+        return self.locations[0]
 
     def __repr__(self):
         return "FlatFAT()"
 
     def __str__(self):
-        return "FlatFAT(tuple:%s, \nleft:%s, \nright:%s)" % (self.tuple, self.leftChild, self.rightChild)
+        return "FlatFAT(size: %s, maxArg: %s)" % (2**self.leafsDepth, self.aggregate())
+
+
+if "__name__" == "__main__":
+    # some basic functionality testing
+    # expected results:
+
+    # 8
+    # [{'max': 8, 'arg': '8'}, {'max': 4, 'arg': '4'}, {'max': 8, 'arg': '8'}, {'max': 2, 'arg': '2'}, {'max': 4, 'arg': '4'}, {'max': 6, 'arg': '6'}, {'max': 8, 'arg': '8'}, {'max': 1, 'arg': '1'}, {'max': 2, 'arg': '2'}, {'max': 3, 'arg': '3'}, {'max': 4, 'arg': '4'}, {'max': 5, 'arg': '5'}, {'max': 6, 'arg': '6'}, {'max': 7, 'arg': '7'}, {'max': 8, 'arg': '8'}]
+    # [{'max': 8, 'arg': '8'}, {'max': 4, 'arg': '4'}, {'max': 8, 'arg': '8'}, {'max': 2, 'arg': '2'}, {'max': 4, 'arg': '4'}, {'max': 6, 'arg': '6'}, {'max': 8, 'arg': '8'}, {'max': 0, 'arg': '1'}, {'max': 2, 'arg': '2'}, {'max': 3, 'arg': '3'}, {'max': 4, 'arg': '4'}, {'max': 5, 'arg': '5'}, {'max': 6, 'arg': '6'}, {'max': 7, 'arg': '7'}, {'max': 8, 'arg': '8'}]
+    # [{'max': 7, 'arg': '7'}, {'max': 4, 'arg': '4'}, {'max': 7, 'arg': '7'}, {'max': 2, 'arg': '2'}, {'max': 4, 'arg': '4'}, {'max': 6, 'arg': '6'}, {'max': 7, 'arg': '7'}, {'max': 0, 'arg': '1'}, {'max': 2, 'arg': '2'}, {'max': 3, 'arg': '3'}, {'max': 4, 'arg': '4'}, {'max': 5, 'arg': '5'}, {'max': 6, 'arg': '6'}, {'max': 7, 'arg': '7'}, None]
+    # [{'max': 9, 'arg': '9'}, {'max': 4, 'arg': '4'}, {'max': 9, 'arg': '9'}, {'max': 2, 'arg': '2'}, {'max': 4, 'arg': '4'}, {'max': 6, 'arg': '6'}, {'max': 9, 'arg': '9'}, {'max': 0, 'arg': '1'}, {'max': 2, 'arg': '2'}, {'max': 3, 'arg': '3'}, {'max': 4, 'arg': '4'}, {'max': 5, 'arg': '5'}, {'max': 6, 'arg': '6'}, {'max': 7, 'arg': '7'}, {'max': 9, 'arg': '9'}]
+    # [{'max': 0, 'arg': '1'}, {'max': 2, 'arg': '2'}, {'max': 3, 'arg': '3'}, {'max': 4, 'arg': '4'}, {'max': 5, 'arg': '5'}, {'max': 6, 'arg': '6'}, {'max': 7, 'arg': '7'}, {'max': 9, 'arg': '9'}]
+    # 0 None
+    # 1 {'max': 0, 'arg': '1'}
+    # 2 {'max': 2, 'arg': '2'}
+    # 3 {'max': 3, 'arg': '3'}
+    # 4 {'max': 4, 'arg': '4'}
+    # 5 {'max': 5, 'arg': '5'}
+    # 6 {'max': 6, 'arg': '6'}
+    # 7 {'max': 7, 'arg': '7'}
+    # 8 {'max': 9, 'arg': '9'}
+    # 0 None
+    # 1 {'max': 1, 'arg': '1'}
+    # 2 {'max': 2, 'arg': '2'}
+    # 3 {'max': 3, 'arg': '3'}
+    # 4 {'max': 4, 'arg': '4'}
+    pass
+
+    f = FlatFATs(8)
+    print(f.getSize())
+    f.new([Event(0, "1", 1), Event(0, "2", 2), Event(0, "3", 3), Event(0, "4", 4), Event(0, "5", 5), Event(0, "6", 6), Event(0, "7", 7), Event(0, "8", 8)])
+    print(f.locations)
+    f.update([Event(0, "1", 0)], "trigger")
+    print(f.locations)
+    f.update([Event(0, "8", 8)], "evict")
+    print(f.locations)
+    f.update([Event(0, "9", 9)], "insert")
+    print(f.locations)
+    print(f.getLocations())
+    for i in range(9):
+        print(i, f.prefix(i))
+
+    f = FlatFATs(4)
+    f.new([Event(0, "4", 4), Event(0, "3", 3), Event(0, "2", 2), Event(0, "1", 1)])
+    for i in range(5):
+        print(i, f.suffix(i))

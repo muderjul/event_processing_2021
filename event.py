@@ -7,6 +7,7 @@ class Event:
     def getKey(self):
         return self.key
 
+    # allow comparison to other Event-Instances as well as our internal Dict structure
     def __eq__(self, other):
         if other is None:
             return False
